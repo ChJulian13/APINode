@@ -28,3 +28,11 @@ export interface AuthResponseDTO {
   user: UserResponseDTO;
   token: string;
 }
+
+//Actualizar
+export const UpdateUserSchema = z.object({
+  name: z.string().min(2, "El nombre debe tener al menos dos letras").optional(),
+  email: z.email("Formato de correo inválido").optional()
+});
+
+export type UpdateUserDTO = z.infer<typeof UpdateUserSchema>
