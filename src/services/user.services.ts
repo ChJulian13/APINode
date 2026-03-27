@@ -1,8 +1,9 @@
 import { UserRepository } from '../repositories/user.repository.js';
-import { type CreateUserDTO, type LoginUserDTO, type UserResponseDTO, type AuthResponseDTO } from '../domain/user.domain.js';
+import { type CreateUserDTO, type LoginUserDTO, type UserResponseDTO, type AuthResponseDTO, type UpdateUserDTO} from '../domain/user.domain.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
+import { email } from 'zod';
 
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
@@ -82,5 +83,41 @@ export class UserService {
       },
       token,
     };
+  }
+
+  async updateUser (id: string, data: UpdateUserDTO): Promise<UserResponseDTO> {
+    const existingUser = await this.userRepository.findById(id);
+    if (!existingUser) {
+      throw new Error('USER_NOT_FOUND');
+    }
+
+    if(data.email && data.email !== existingUser.email) {
+      const emailTaken = await this.userRepository.findByEmail(data.email);
+      if (emailTaken) {
+        throw new Error('EMAIL_ALREADY_IN_USE');
+      }
+    }
+
+    const newName = data.name ?? existingUser.name;
+    const newEmail = data.email ?? existingUser.email;
+
+    await this.userRepository.update(id, newName, newEmail);
+
+    return {
+      id, 
+      name: newName,
+      email: newEmail,
+      createdAt: existingUser.created_at
+    };
+  }
+
+  async deleteUser(id: string) : Promise<void> {
+    const existingUser = await this.userRepository.findById(id);
+
+    if(!existingUser) {
+      throw new Error('USER_NOT_FOUND');
+    }
+
+    await this.userRepository.delete(id);
   }
 }

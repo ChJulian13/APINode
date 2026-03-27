@@ -6,7 +6,7 @@ const envSchema = z.object({
   PORT: z.string().default('3000'),
   DB_HOST: z.string(),
   DB_USER: z.string(),
-  DB_PASSWORD: z.string().optional(),
+  DB_PASSWORD: z.string().default(''),
   DB_NAME: z.string(),
   JWT_SECRET: z.string().min(10, "El secreto debe tener al menos 10 caracteres"),
   // Zod se encarga de transformar el texto del .env a un número real

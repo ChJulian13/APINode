@@ -50,4 +50,26 @@ export class UserRepository {
 
     return rows;
   }
+
+  async update(id: string, name: string, email: string): Promise<void> {
+    await pool.execute(
+      'UPDATE users SET name =?, email = ? WHERE id = ?',
+      [name, email, id]
+    );
+  }
+
+  async findById(id: string): Promise<UserRow | null> {
+    const [rows] = await pool.execute<UserRow[]>(
+      'SELECT id, name, email, password_hash, created_at FROM users WHERE id = ?',
+      [id]
+    );
+    return rows[0] ?? null;
+  } 
+
+  async delete(id: string) : Promise<void> {
+    await pool.execute(
+      'DELETE FROM users WHERE id = ?',
+      [id]
+    );
+  }
 }

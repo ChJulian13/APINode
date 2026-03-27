@@ -1,7 +1,7 @@
 import { type Request, type Response } from 'express';
 import { UserService } from '../services/user.services.js';
-import { CreateUserSchema, LoginUserSchema } from '../domain/user.domain.js';
-import { success } from 'zod';
+import { CreateUserSchema, LoginUserSchema, UpdateUserSchema } from '../domain/user.domain.js';
+import { object, success } from 'zod';
 
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -82,4 +82,77 @@ export class UserController {
         });
     }
   };
+
+  update = async(req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      if(!id || typeof id !== 'string') {
+        res.status(400).json( { success: false, message: 'El ID de la URL es inválido o no existe'});
+        return;
+      }
+
+      const isValidateData = UpdateUserSchema.parse(req.body);
+
+      if (Object.keys(isValidateData).length === 0) {
+        res.status(400).json({ sucess: false, message: 'No se enviaron datos para actualizar' });
+        return;
+      }
+
+      const updateUser = await this.userService.updateUser(id, isValidateData);
+
+      res.status(200).json({
+        success: true,
+        message: 'Usuario actualizado correctamente',
+        data: updateUser,
+      });
+
+    } catch (error : any) {
+      if (error.name === 'ZodError') {
+        res.status(400).json({ success: false, errors: error.errors});
+        return;
+      }
+
+      if (error.message === 'USER_NOT_FOUND') {
+        res.status(404).json({ success: false, message: 'Usuario no encontrado'});
+        return;
+      }
+
+      if (error.message === "EMAIL_ALREADY_IN_USE") {
+        res.status(409).json({ success: false, message: 'Correo registrado por otro usuario'});
+        return;
+      }
+
+      console.error(error);
+      res.status(500).json({ success: false, meessage: 'Error interno del servidor'})
+    }
+  }
+
+  delete = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      if (!id || typeof id !== 'string') {
+        res.status(400).json({ sucess: false, message: 'El ID es inválido o no se proporcionó'});
+        return;
+      }
+
+      await this.userService.deleteUser(id);
+
+      res.status(200).json({
+        success: true,
+        message: 'Usuario eliminado correctamente'
+      });
+
+    } catch (error: any) {
+      if (error.message === 'USER_NOT_FOUND') {
+        res.status(404).json({ success: false, message: 'Usuario no encontrado'});
+        return;
+      }
+
+      console.error(error);
+      res.status(500).json({ success: false, message: 'Error interno del servidor'});
+
+    }
+  }
 }
