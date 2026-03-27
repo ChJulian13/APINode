@@ -59,5 +59,7 @@ Se recomienda agregar el siguiente script en el archivo `package.json` para ejec
 * `tsx` facilita la ejecución directa de archivos `.ts` sin necesidad de compilación manual.
 * La separación entre dependencias de producción y desarrollo mejora la organización del proyecto.
 * `cors` permite la comunicación con aplicaciones frontend (por ejemplo, Angular).
+* Es necesario crear las carpetas `/src` y `/dist` y habilitar la configuración en tsconfig.json
+* También dentro de package.json modificar el `type` de `jscommon` a `module` para utilizar ESMAScript 6
 
 ---
